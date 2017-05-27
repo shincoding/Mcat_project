@@ -41,8 +41,8 @@ public class MainActivity extends AppCompatActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = mainActivity.class.getSimpleName();
-    private GoogleMap eMap;
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private GoogleMap mMap;
     private CameraPosition mCameraPosition;
 
     // The entry point to Google Play services, used by the Places API and Fused Location Provider.
