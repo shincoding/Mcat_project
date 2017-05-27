@@ -7,5 +7,10 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.example.shinaegi.mcat.MainActivity"
     tools:showIn="@layout/activity_main">
-
+    <TextView
+        android:id="@+id/snippet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#ff7f7f7f" />
 </android.support.constraint.ConstraintLayout>
+
