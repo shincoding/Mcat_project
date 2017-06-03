@@ -16,6 +16,9 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+
+import android.database.Cursor;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -32,6 +35,9 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import android.content.SharedPreferences;
+
+
 
 /**
  * An activity that displays a map showing the place at the device's current location.
@@ -41,6 +47,7 @@ public class MainActivity extends AppCompatActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
+    DatabaseHelper myDb;
     private static final String TAG = MainActivity.class.getSimpleName();
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
@@ -73,6 +80,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        myDb = new DatabaseHelper(this);
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -169,6 +178,31 @@ public class MainActivity extends AppCompatActivity
                             .getLastLocation(mGoogleApiClient).getLongitude()));
                 }
             }
+        if (item.getItemId() == R.id.option_add_place)
+        {
+            myDb.insertData("asd", "asdf", "ASDf");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+            Cursor res = myDb.getAllData();
+            if(res.getCount() == 0){
+                builder.setCancelable(true);
+                builder.setTitle("DATA");
+                builder.setMessage("nop");
+                builder.show();
+                return false;
+            }
+            StringBuffer buffer = new StringBuffer();
+            while (res.moveToNext()){
+                buffer.append("ID" + res.getString(0) + "\n");
+                buffer.append("Name" + res.getString(1) + "\n");
+                buffer.append("Surname" + res.getString(2) + "\n");
+                buffer.append("Marks" + res.getString(3) + "\n");
+            }
+            builder.setCancelable(true);
+            builder.setTitle("DATA");
+            builder.setMessage(buffer.toString());
+            builder.show();
+        }
         showCurrentPlace();
 
         return true;
@@ -229,7 +263,7 @@ public class MainActivity extends AppCompatActivity
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
         } else {
-            ActivityCompat.requestPermissions(this,
+                ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
