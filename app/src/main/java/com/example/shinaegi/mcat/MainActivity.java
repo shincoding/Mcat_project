@@ -1,9 +1,33 @@
 package com.example.shinaegi.mcat;
 
+import android.support.design.widget.TabLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v13.app.FragmentCompat;
+
+import android.support.v4.view.ViewPager;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+
+import android.widget.TextView;
+
+
+
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.renderscript.Double2;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -13,9 +37,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-
+import java.util.ArrayList;
+import java.util.Objects;
 
 import android.database.Cursor;
 
@@ -31,12 +57,16 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import android.content.SharedPreferences;
 
+import layout.tab1_fragment;
+import layout.tab2_fragment;
 
 
 /**
@@ -47,7 +77,20 @@ public class MainActivity extends AppCompatActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
+
+    private SectionsPageAdapter mSectionsPageAdapter;
+
+    private ViewPager mViewPager;
+
+
+    //Database
     DatabaseHelper myDb;
+
+    //Array of GPS info of current data.
+    ArrayList<Double> list_longitude = new ArrayList<Double>();
+    ArrayList<Double> list_latitude = new ArrayList<Double>();
+
+
     private static final String TAG = MainActivity.class.getSimpleName();
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
@@ -81,6 +124,17 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mSectionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
+
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = (ViewPager) findViewById(R.id.container);
+        setupViewPager(mViewPager);
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(mViewPager);
+
+
+        //database!!
         myDb = new DatabaseHelper(this);
 
         // Retrieve location and camera position from saved instance state.
@@ -104,6 +158,13 @@ public class MainActivity extends AppCompatActivity
                 .build();
         mGoogleApiClient.connect();
     }
+    private void setupViewPager(ViewPager viewPager) {
+        SectionsPageAdapter adapter = new SectionsPageAdapter(getSupportFragmentManager());
+        adapter.addFragment(new tab1_fragment(), "TAB1");
+        adapter.addFragment(new tab2_fragment(), "TAB2");
+        viewPager.setAdapter(adapter);
+    }
+
 
     /**
      * Saves the state of the map when the activity is paused.
@@ -149,6 +210,7 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Sets up the options menu.
+     *
      * @param menu The options menu.
      * @return Boolean.
      */
@@ -162,50 +224,30 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Handles a click on the menu option to get a place.
+     *
      * @param item The menu item to handle.
      * @return Boolean.
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.option_get_place) {
-            Log.d(TAG, "zz");
-
             if (mLastKnownLocation != null) {
                 if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                         android.Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED)
-                    Log.d(TAG, String.valueOf(LocationServices.FusedLocationApi
+                        == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "Longitude: " + String.valueOf(LocationServices.FusedLocationApi
                             .getLastLocation(mGoogleApiClient).getLongitude()));
+                    Log.d(TAG, "Latitude: " + String.valueOf(LocationServices.FusedLocationApi
+                            .getLastLocation(mGoogleApiClient).getLatitude()));
                 }
-            }
-        if (item.getItemId() == R.id.option_add_place)
-        {
-            myDb.insertData("asd", "asdf", "ASDf");
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-            Cursor res = myDb.getAllData();
-            if(res.getCount() == 0){
-                builder.setCancelable(true);
-                builder.setTitle("DATA");
-                builder.setMessage("nop");
-                builder.show();
-                return false;
             }
-            StringBuffer buffer = new StringBuffer();
-            while (res.moveToNext()){
-                buffer.append("ID" + res.getString(0) + "\n");
-                buffer.append("Name" + res.getString(1) + "\n");
-                buffer.append("Surname" + res.getString(2) + "\n");
-                buffer.append("Marks" + res.getString(3) + "\n");
-            }
-            builder.setCancelable(true);
-            builder.setTitle("DATA");
-            builder.setMessage(buffer.toString());
-            builder.show();
+
+            showCurrentPlace();
+
         }
-        showCurrentPlace();
-
         return true;
+
     }
 
     /**
@@ -215,6 +257,17 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+
+            @Override
+            public boolean onMarkerClick(Marker arg0) {
+
+                return true;
+            }
+
+        });
+
 
         // Use a custom info window adapter to handle multiple lines of text in the
         // info window contents.
@@ -230,7 +283,7 @@ public class MainActivity extends AppCompatActivity
             public View getInfoContents(Marker marker) {
                 // Inflate the layouts for the info window, title and snippet.
                 View infoWindow = getLayoutInflater().inflate(R.layout.content_main,
-                        (FrameLayout)findViewById(R.id.map), false);
+                        (FrameLayout) findViewById(R.id.map), false);
 
                 TextView title = ((TextView) infoWindow.findViewById(R.id.title));
                 title.setText(marker.getTitle());
@@ -247,7 +300,27 @@ public class MainActivity extends AppCompatActivity
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
+        Cursor res = myDb.getAllData();
+        if (res.getCount() != 0) {
+            while (res.moveToNext()) {
+
+            if (!list_latitude.contains(res.getDouble(res.getColumnIndex("longitude"))) || !list_longitude.contains(res.getDouble(res.getColumnIndex("latitude"))) || list_latitude.indexOf(res.getDouble(res.getColumnIndex("longitude"))) != list_longitude.indexOf(res.getDouble(res.getColumnIndex("latitude")))) {
+                    Log.d("hehehe1", res.getString(0));
+                    Log.d("hehehe2", res.getString(1));
+                    Log.d("hehehe3", res.getString(2));
+                    mMap.addMarker(new MarkerOptions().title(res.getString(1)).position(new LatLng(res.getDouble(res.getColumnIndex("latitude")), res.getDouble(res.getColumnIndex("longitude")))).snippet(""));
+
+                    list_latitude.add(res.getDouble(res.getColumnIndex("longitude")));
+                    list_longitude.add(res.getDouble(res.getColumnIndex("latitude")));
+                }
+
+            }
+
+        }
     }
+
+
+
 
     /**
      * Gets the current location of the device, and positions the map's camera.
@@ -288,8 +361,12 @@ public class MainActivity extends AppCompatActivity
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
-    }
 
+    }
+    public boolean onMarkerClick(final Marker marker) {
+        Log.i("GoogleMapActivity", "onMarkerClick");
+        return false;
+    }
     /**
      * Handles the result of the request for location permissions.
      */
@@ -314,89 +391,75 @@ public class MainActivity extends AppCompatActivity
      * Prompts the user to select the current place from a list of likely places, and shows the
      * current place on the map - provided the user has granted location permission.
      */
+
+
+    /**
+     * Prompts the user to select the current place from a list of likely places, and shows the
+     * current place on the map - provided the user has granted location permission.
+     */
     private void showCurrentPlace() {
         if (mMap == null) {
             return;
         }
+        openMessageDialog();
+    }
 
-        if (mLocationPermissionGranted) {
-            // Get the likely places - that is, the businesses and other points of interest that
-            // are the best match for the device's current location.
-            @SuppressWarnings("MissingPermission")
-            PendingResult<PlaceLikelihoodBuffer> result = Places.PlaceDetectionApi
-                    .getCurrentPlace(mGoogleApiClient, null);
-            result.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
-                @Override
-                public void onResult(@NonNull PlaceLikelihoodBuffer likelyPlaces) {
-                    int i = 0;
-                    mLikelyPlaceNames = new String[mMaxEntries];
-                    mLikelyPlaceAddresses = new String[mMaxEntries];
-                    mLikelyPlaceAttributions = new String[mMaxEntries];
-                    mLikelyPlaceLatLngs = new LatLng[mMaxEntries];
-                    for (PlaceLikelihood placeLikelihood : likelyPlaces) {
-                        // Build a list of likely places to show the user. Max 5.
-                        mLikelyPlaceNames[i] = (String) placeLikelihood.getPlace().getName();
-                        mLikelyPlaceAddresses[i] = (String) placeLikelihood.getPlace().getAddress();
-                        mLikelyPlaceAttributions[i] = (String) placeLikelihood.getPlace()
-                                .getAttributions();
-                        mLikelyPlaceLatLngs[i] = placeLikelihood.getPlace().getLatLng();
+    private void openMessageDialog(){
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("MESSAGE");
+        dialog.setMessage("Type in message");
+        final EditText input = new EditText(this);
+        dialog.setView(input);
+        dialog.setPositiveButton("Add",new DialogInterface.OnClickListener(){
+            public void onClick(DialogInterface dialogInterface, int which){
+                String input_text = String.valueOf(input.getText());
 
-                        i++;
-                        if (i > (mMaxEntries - 1)) {
-                            break;
-                        }
+                if (ContextCompat.checkSelfPermission(MainActivity.this.getApplicationContext(),
+                        android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                {
+                    Double longitude_info = LocationServices.FusedLocationApi
+                            .getLastLocation(mGoogleApiClient).getLongitude();
+                    Double latitude_info = LocationServices.FusedLocationApi
+                            .getLastLocation(mGoogleApiClient).getLatitude();
+                    myDb.insertData(input_text,longitude_info , latitude_info
+                            );
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+                    mMap.addMarker(new MarkerOptions().title(input_text).position(new LatLng(latitude_info, longitude_info)).snippet(""));
+
+                    Cursor res = myDb.getAllData();
+                    if (res.getCount() == 0) {
+                        builder.setCancelable(true);
+                        builder.setTitle("DATA");
+                        builder.setMessage("nop");
+                        builder.show();
                     }
-                    // Release the place likelihood buffer, to avoid memory leaks.
-                    likelyPlaces.release();
 
-                    // Show a dialog offering the user the list of likely places, and add a
-                    // marker at the selected place.
-                    openPlacesDialog();
+
+
+                    StringBuffer buffer = new StringBuffer();
+                    while (res.moveToNext()) {
+                        buffer.append("ID" + res.getString(0) + "\n");
+                        buffer.append("Name" + res.getString(1) + "\n");
+                        buffer.append("Surname" + res.getString(2) + "\n");
+                        buffer.append("Marks" + res.getString(3) + "\n");
+                    }
+
+                    builder.setCancelable(true);
+                    builder.setTitle("DATA");
+                    builder.setMessage(buffer.toString());
+                    builder.show();
+
+
                 }
-            });
-        } else {
-            // Add a default marker, because the user hasn't selected a place.
-            mMap.addMarker(new MarkerOptions()
-                    .title(getString(R.string.default_info_title))
-                    .position(mDefaultLocation)
-                    .snippet(getString(R.string.default_info_snippet)));
-        }
+            }
+                });
+        dialog.setNegativeButton("Close", null);
+        dialog.show();
+
     }
 
-    /**
-     * Displays a form allowing the user to select a place from a list of likely places.
-     */
-    private void openPlacesDialog() {
-        // Ask the user to choose the place where they are now.
-        DialogInterface.OnClickListener listener =
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // The "which" argument contains the position of the selected item.
-                        LatLng markerLatLng = mLikelyPlaceLatLngs[which];
-                        String markerSnippet = mLikelyPlaceAddresses[which];
-                        if (mLikelyPlaceAttributions[which] != null) {
-                            markerSnippet = markerSnippet + "\n" + mLikelyPlaceAttributions[which];
-                        }
-                        // Add a marker for the selected place, with an info window
-                        // showing information about that place.
-                        mMap.addMarker(new MarkerOptions()
-                                .title(mLikelyPlaceNames[which])
-                                .position(markerLatLng)
-                                .snippet(markerSnippet));
 
-                        // Position the map's camera at the location of the marker.
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerLatLng,
-                                DEFAULT_ZOOM));
-                    }
-                };
-
-        // Display the dialog.
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(R.string.pick_place)
-                .setItems(mLikelyPlaceNames, listener)
-                .show();
-    }
 
     /**
      * Updates the map's UI settings based on whether the user has granted location permission.

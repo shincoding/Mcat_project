@@ -16,9 +16,9 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     private static final String DATABASE_NAME = "Student.db";
     public static final String TABLE_NAME = "student_table";
     public static final String COL_1 = "ID";
-    public static final String COL_2 = "NAME";
-    public static final String COL_3 = "SURNAME";
-    public static final String COL_4 = "MARKS";
+    public static final String COL_2 = "text";
+    public static final String COL_3 = "longitude";
+    public static final String COL_4 = "latitude";
 
 
     public DatabaseHelper(Context context) {
@@ -28,7 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String SQL_String = "create table " + TABLE_NAME + "(" + COL_1 + " INTEGER PRIMARY KEY AUTOINCREMENT," + COL_2 + " TEXT," + COL_3 + " TEXT," + COL_4 +" INTEGER"+ ")";
+        String SQL_String = "create table " + TABLE_NAME + "(" + COL_1 + " INTEGER PRIMARY KEY AUTOINCREMENT," + COL_2 + " TEXT," + COL_3 + " REAL," + COL_4 +" REAL"+ ")";
         db.execSQL(SQL_String);
     }
 
@@ -38,12 +38,12 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         onCreate(db);
     }
 
-    public boolean insertData(String name, String surname, String marks) {
+    public boolean insertData(String text, double longitude, double latitude) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COL_2, name);
-        contentValues.put(COL_3, surname);
-        contentValues.put(COL_4, marks);
+        contentValues.put(COL_2, text);
+        contentValues.put(COL_3, longitude);
+        contentValues.put(COL_4, latitude);
         long result = db.insert(TABLE_NAME, null, contentValues);
         if (result == -1)
         {
