@@ -19,6 +19,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public static final String COL_2 = "text";
     public static final String COL_3 = "longitude";
     public static final String COL_4 = "latitude";
+    public static final String COL_5 = "time";
 
 
     public DatabaseHelper(Context context) {
@@ -28,7 +29,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String SQL_String = "create table " + TABLE_NAME + "(" + COL_1 + " INTEGER PRIMARY KEY AUTOINCREMENT," + COL_2 + " TEXT," + COL_3 + " REAL," + COL_4 +" REAL"+ ")";
+        String SQL_String = "create table " + TABLE_NAME + "(" + COL_1 + " INTEGER PRIMARY KEY AUTOINCREMENT," + COL_2 + " TEXT," + COL_3 + " REAL," + COL_4 +" REAL," + COL_5 + " REAL" + ")";
         db.execSQL(SQL_String);
     }
 
@@ -38,12 +39,14 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         onCreate(db);
     }
 
-    public boolean insertData(String text, double longitude, double latitude) {
+    public boolean insertData(String text, double longitude, double latitude, String cur_time) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_2, text);
         contentValues.put(COL_3, longitude);
         contentValues.put(COL_4, latitude);
+        contentValues.put(COL_5, cur_time);
+
         long result = db.insert(TABLE_NAME, null, contentValues);
         if (result == -1)
         {
