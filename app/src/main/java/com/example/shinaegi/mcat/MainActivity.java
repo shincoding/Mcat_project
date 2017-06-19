@@ -41,6 +41,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 
 import android.database.Cursor;
@@ -81,8 +82,11 @@ public class MainActivity extends AppCompatActivity
     public static ArrayList<String> list_times;
     public static Double cur_longitude;
     public static Double cur_latitude;
+    public static HashMap<String,Marker> hashMapMarker;
+    public static HashMap<String,String> hashMapTime;
 
-    private SectionsPageAdapter mSectionsPageAdapter;
+
+            private SectionsPageAdapter mSectionsPageAdapter;
 
     private ViewPager mViewPager;
 
@@ -95,6 +99,8 @@ public class MainActivity extends AppCompatActivity
         list_latitude = new ArrayList<Double>();
         list_times = new ArrayList<String>();
         list_messages = new ArrayList<String>();
+        hashMapMarker = new HashMap<>();
+        hashMapTime = new HashMap<>();
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);

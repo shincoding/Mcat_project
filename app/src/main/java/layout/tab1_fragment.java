@@ -1,5 +1,7 @@
 package layout;
 import android.os.Handler;
+
+import java.util.Set;
 import java.util.Timer;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -8,6 +10,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringDef;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -25,6 +28,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.HashMap;
 import java.util.Calendar;
 
 import android.content.Context;
@@ -64,7 +68,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
 
 
 
-
     private static final String TAG = MainActivity.class.getSimpleName();
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
@@ -79,6 +82,8 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 
+    public boolean bool_test = false;
+
     // The geographical location where the device is currently located. That is, the last-known
     // location retrieved by the Fused Location Provider.
     private Location mLastKnownLocation;
@@ -87,13 +92,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
 
-    // Used for selecting the current place.
-    private final int mMaxEntries = 5;
-    private String[] mLikelyPlaceNames = new String[mMaxEntries];
-    private String[] mLikelyPlaceAddresses = new String[mMaxEntries];
-    private String[] mLikelyPlaceAttributions = new String[mMaxEntries];
-    private LatLng[] mLikelyPlaceLatLngs = new LatLng[mMaxEntries];
-    MapView mMapView;
 
     @Nullable
     @Override
@@ -173,7 +171,16 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     public void onMapReady(final GoogleMap map) {
         mMap = map;
 
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            MainActivity.cur_latitude = LocationServices.FusedLocationApi
+                    .getLastLocation(mGoogleApiClient).getLatitude();
+
+            MainActivity.cur_longitude = LocationServices.FusedLocationApi
+                    .getLastLocation(mGoogleApiClient).getLongitude();
+
+        }
+            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 
             @Override
             public boolean onMarkerClick(Marker arg0) {
@@ -193,26 +200,80 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         final Runnable worker = new Runnable() {
             @Override
             public void run() {
-                Log.d("haha", "abcdef123");
+                if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
+                        android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    MainActivity.cur_latitude = LocationServices.FusedLocationApi
+                            .getLastLocation(mGoogleApiClient).getLatitude();
+
+                    MainActivity.cur_longitude = LocationServices.FusedLocationApi
+                            .getLastLocation(mGoogleApiClient).getLongitude();
+
+                }
+                if (bool_test == true){
+                    MainActivity.cur_latitude = 0.0;
+                }
+
+                Log.d("qwerpy8wfv", String.valueOf(MainActivity.cur_longitude));
+                Log.d("qwerpy8wfv2", String.valueOf(MainActivity.cur_latitude));
+                Set<String> set_of_keys =  MainActivity.hashMapTime.keySet();
+                try {
+                    ArrayList<String> keys_deleted = new ArrayList<String>();
+                    for (String key : set_of_keys) {
+                        if (MainActivity.hashMapMarker.get(key).getPosition().latitude > MainActivity.cur_latitude + 00.0002000 || MainActivity.hashMapMarker.get(key).getPosition().latitude < MainActivity.cur_latitude - 00.0002000 || MainActivity.hashMapMarker.get(key).getPosition().longitude > MainActivity.cur_longitude + 00.0002000 && MainActivity.hashMapMarker.get(key).getPosition().longitude < MainActivity.cur_longitude - 00.0002000) {
+                            //int the_key = MainActivity.list_longitude.lastIndexOf(MainActivity.hashMapMarker.get(key).getPosition().latitude);
+                            keys_deleted.add(key);
+
+                            //MainActivity.hashMapMarker.remove(key);
+
+
+                        }
+                    }
+                    for (String key : keys_deleted){
+                        //Marker m = MainActivity.hashMapMarker.get(key);
+                        Log.d("THE KEY:", "FSDAF");
+
+                        Log.d("THE KEY:", "ABC" + MainActivity.hashMapMarker.get(key).getSnippet());
+                        Log.d("THE KEY:", "DEF" + MainActivity.hashMapTime.get(key));
+
+                        Marker m = MainActivity.hashMapMarker.get(key);
+                        MainActivity.hashMapTime.remove(key);
+                        m.remove();
+                    }
+                }
+                catch(Exception e){
+                    Log.d("EXCEPTION(deletemrker):", e.getMessage());
+                }
 
                 Cursor res = myDb.getAllData();
 
-                if (res.getCount() != 0) {
-                    while (res.moveToNext()) {
 
-                        if (!MainActivity.list_latitude.contains(res.getDouble(res.getColumnIndex("longitude"))) || !MainActivity.list_longitude.contains(res.getDouble(res.getColumnIndex("latitude"))) || MainActivity.list_latitude.indexOf(res.getDouble(res.getColumnIndex("longitude"))) != MainActivity.list_longitude.indexOf(res.getDouble(res.getColumnIndex("latitude")))) {
-                            Log.d("hehehe1", res.getString(0));
-                            Log.d("hehehe2", res.getString(1));
-                            Log.d("hehehe3", res.getString(2));
-                            MainActivity.list_times.add(res.getString(4));
-                            MainActivity.list_messages.add(res.getString(0));
-                            Marker marker = mMap.addMarker(new MarkerOptions().title(res.getString(1)).position(new LatLng(res.getDouble(res.getColumnIndex("latitude")), res.getDouble(res.getColumnIndex("longitude")))).snippet(""));
+                try {
+                    if (res.getCount() != 0) {
+                        while (res.moveToNext()) {
+                            String key = res.getString(0);
+                            Log.d("asdffh32oif", String.valueOf(res.getDouble(res.getColumnIndex("latitude"))));
+                            Log.d("asd123ffh32oif", String.valueOf(res.getDouble(res.getColumnIndex("longitude"))));
 
-                            MainActivity.list_latitude.add(res.getDouble(res.getColumnIndex("longitude")));
-                            MainActivity.list_longitude.add(res.getDouble(res.getColumnIndex("latitude")));
+                            if (!MainActivity.hashMapTime.containsKey(key) &&
+                                    res.getDouble(res.getColumnIndex("latitude")) <= MainActivity.cur_latitude + 00.0002000 && res.getDouble(res.getColumnIndex("latitude")) >= MainActivity.cur_latitude - 00.0002000 && res.getDouble(res.getColumnIndex("longitude")) <= MainActivity.cur_longitude + 00.0002000 && res.getDouble(res.getColumnIndex("longitude")) >= MainActivity.cur_longitude - 00.0002000) {
+                                Log.d("hehehe1", res.getString(0));
+                                Log.d("hehehe2", res.getString(1));
+                                Log.d("hehehe3", res.getString(2));
+
+                                //MainActivity.list_times.add(res.getString(4));
+                                //MainActivity.list_messages.add(res.getString(0));
+                                Marker marker = mMap.addMarker(new MarkerOptions().title(res.getString(1)).position(new LatLng(res.getDouble(res.getColumnIndex("latitude")), res.getDouble(res.getColumnIndex("longitude")))).snippet(res.getString(1)));
+                                MainActivity.hashMapMarker.put(res.getString(0), marker);
+                                MainActivity.hashMapTime.put(res.getString(0), res.getString(4));
+                                //MainActivity.list_latitude.add(res.getDouble(res.getColumnIndex("longitude")));
+                                //MainActivity.list_longitude.add(res.getDouble(res.getColumnIndex("latitude")));
+                            }
+
                         }
-
                     }
+                }
+                catch(Exception e){
+                    Log.d("EXCEPTION(addmarker):", e.getMessage());
                 }
 
                 res.moveToFirst();
@@ -261,11 +322,23 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
      * Gets the current location of the device, and positions the map's camera.
      */
     private void getDeviceLocation() {
+        Log.d("qwerpy8wfv", String.valueOf(MainActivity.cur_latitude));
+
         /*
          * Request location permission, so that we can get the location of the
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
+        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            MainActivity.cur_latitude = LocationServices.FusedLocationApi
+                    .getLastLocation(mGoogleApiClient).getLatitude();
+
+            MainActivity.cur_longitude = LocationServices.FusedLocationApi
+                    .getLastLocation(mGoogleApiClient).getLongitude();
+
+        }
+
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -340,6 +413,13 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     }
 
     private void openMessageDialog(){
+//        if (bool_test == false){
+//            bool_test = true;
+//
+//        }
+//        else{
+//            bool_test = false;
+//        }
         AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
         dialog.setTitle("MESSAGE");
         dialog.setMessage("Type in message");
@@ -348,15 +428,9 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         dialog.setPositiveButton("Add",new DialogInterface.OnClickListener(){
             public void onClick(DialogInterface dialogInterface, int which){
                 String input_text = String.valueOf(input.getText());
-
                 if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                         android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                 {
-                    MainActivity.cur_latitude = LocationServices.FusedLocationApi
-                            .getLastLocation(mGoogleApiClient).getLatitude();
-
-                    MainActivity.cur_longitude = LocationServices.FusedLocationApi
-                            .getLastLocation(mGoogleApiClient).getLongitude();
 
                     Double longitude_info = LocationServices.FusedLocationApi
                             .getLastLocation(mGoogleApiClient).getLongitude();
@@ -373,32 +447,9 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     Log.d("hmhmhm", current_time);
                     myDb.insertData(input_text,longitude_info , latitude_info, current_time
                     );
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-                    mMap.addMarker(new MarkerOptions().title(input_text).position(new LatLng(latitude_info, longitude_info)).snippet(""));
+                    //mMap.addMarker(new MarkerOptions().title(input_text).position(new LatLng(latitude_info, longitude_info)).snippet(""));
 
-                    Cursor res = myDb.getAllData();
-                    if (res.getCount() == 0) {
-                        builder.setCancelable(true);
-                        builder.setTitle("DATA");
-                        builder.setMessage("nop");
-                        builder.show();
-                    }
-
-
-
-                    StringBuffer buffer = new StringBuffer();
-                    while (res.moveToNext()) {
-                        buffer.append("ID" + res.getString(0) + "\n");
-                        buffer.append("Name" + res.getString(1) + "\n");
-                        buffer.append("Surname" + res.getString(2) + "\n");
-                        buffer.append("Marks" + res.getString(3) + "\n");
-                    }
-
-                    builder.setCancelable(true);
-                    builder.setTitle("DATA");
-                    builder.setMessage(buffer.toString());
-                    builder.show();
 
 
                 }
@@ -415,10 +466,19 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
      * Updates the map's UI settings based on whether the user has granted location permission.
      */
     private void updateLocationUI() {
+        Log.d("qwerpy8wfv", String.valueOf(MainActivity.cur_latitude));
+
         if (mMap == null) {
             return;
         }
+        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            MainActivity.cur_latitude = LocationServices.FusedLocationApi
+                    .getLastLocation(mGoogleApiClient).getLatitude();
 
+            MainActivity.cur_longitude = LocationServices.FusedLocationApi
+                    .getLastLocation(mGoogleApiClient).getLongitude();
+        }
         /*
          * Request location permission, so that we can get the location of the
          * device. The result of the permission request is handled by a callback,

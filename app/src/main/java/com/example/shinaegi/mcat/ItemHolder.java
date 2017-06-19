@@ -1,6 +1,9 @@
 package com.example.shinaegi.mcat;
 
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +21,7 @@ public class ItemHolder extends ViewHolder<String>{
     {
         super(itemView);
     }
+
 
 
     public static ItemHolder make(ViewGroup parent){
