@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -58,6 +59,7 @@ public class tab2_fragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tab2_fragment, container, false);
+
         cur_index = 0;
         hash_messages = new HashMap<String, String>();
         tab2_Markers = new HashMap<String, String[]>();
@@ -133,10 +135,16 @@ public class tab2_fragment extends Fragment {
         };
         handler.post(worker);
 
+        setHasOptionsMenu(true);
 
         return view;
     }
 
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Do something that differs the Activity's menu here
+        super.onCreateOptionsMenu(menu, inflater);
+        menu.getItem(0).setEnabled(false);
+    }
 
     private class CustomAdapter extends RecyclerView.Adapter<ItemHolder>
     {

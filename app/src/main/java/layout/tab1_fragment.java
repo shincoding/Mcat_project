@@ -1,6 +1,12 @@
 package layout;
 import android.os.Handler;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.Set;
 import java.util.Timer;
 import android.content.DialogInterface;
@@ -67,7 +73,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     DatabaseHelper myDb;
 
 
-
     private static final String TAG = MainActivity.class.getSimpleName();
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
@@ -92,6 +97,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
 
+    private DatabaseReference mDatabase;
 
     @Nullable
     @Override
@@ -99,6 +105,8 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         View view = inflater.inflate(R.layout.fragment_tab1_fragment,container,false);
         //database!!
         myDb = new DatabaseHelper(getActivity());
+
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
 
         // Retrieve location and camera position from saved instance state.
@@ -156,6 +164,26 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                 }
 
             }
+            // 1 - create a child in root object
+            // 2- assign some values to the child object
+            MarkerData temp = new MarkerData("HAHA", 213.2,2313.2,"asdf");
+            mDatabase.push().setValue(temp);
+
+            mDatabase.getDatabase().getReference().addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()){
+                        MarkerData markerData = dataSnapshot.getValue(MarkerData.class);
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
 
             showCurrentPlace();
 
