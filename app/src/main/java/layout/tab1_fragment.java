@@ -1,5 +1,8 @@
 package layout;
+import android.location.LocationManager;
 import android.os.Handler;
+
+import com.google.android.gms.location.LocationListener;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -104,7 +107,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tab1_fragment,container,false);
         //database!!
-        myDb = new DatabaseHelper(getActivity());
+      //  myDb = new DatabaseHelper(getActivity());
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
@@ -166,23 +169,9 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
             }
             // 1 - create a child in root object
             // 2- assign some values to the child object
-            MarkerData temp = new MarkerData("HAHA", 213.2,2313.2,"asdf");
-            mDatabase.push().setValue(temp);
 
-            mDatabase.getDatabase().getReference().addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()){
-                        MarkerData markerData = dataSnapshot.getValue(MarkerData.class);
 
-                    }
-                }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
 
 
             showCurrentPlace();
@@ -219,11 +208,24 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         });
 
 
-        // Turn on the My Location layer and the related control on the map.
-        updateLocationUI();
+        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            if (location == null) {
+                mGoogleApiClient.connect();
+            }
+            else
+            {
+                // Turn on the My Location layer and the related control on the map.
+                updateLocationUI();
 
-        // Get the current location of the device and set the position of the map.
-        getDeviceLocation();
+                // Get the current location of the device and set the position of the map.
+
+                getDeviceLocation();
+            }
+        }
+
+
         final Handler handler = new Handler();
         final Runnable worker = new Runnable() {
             @Override
@@ -237,7 +239,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                             .getLastLocation(mGoogleApiClient).getLongitude();
 
                 }
-                if (bool_test == true){
+                if (bool_test){
                     MainActivity.cur_latitude = 0.0;
                 }
 
@@ -272,40 +274,72 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     Log.d("EXCEPTION(deletemrker):", e.getMessage());
                 }
 
-                Cursor res = myDb.getAllData();
+//                Cursor res = myDb.getAllData();
 
 
                 try {
-                    if (res.getCount() != 0) {
-                        while (res.moveToNext()) {
-                            String key = res.getString(0);
-                            Log.d("asdffh32oif", String.valueOf(res.getDouble(res.getColumnIndex("latitude"))));
-                            Log.d("asd123ffh32oif", String.valueOf(res.getDouble(res.getColumnIndex("longitude"))));
 
-                            if (!MainActivity.hashMapTime.containsKey(key) &&
-                                    res.getDouble(res.getColumnIndex("latitude")) <= MainActivity.cur_latitude + 00.0002000 && res.getDouble(res.getColumnIndex("latitude")) >= MainActivity.cur_latitude - 00.0002000 && res.getDouble(res.getColumnIndex("longitude")) <= MainActivity.cur_longitude + 00.0002000 && res.getDouble(res.getColumnIndex("longitude")) >= MainActivity.cur_longitude - 00.0002000) {
-                                Log.d("hehehe1", res.getString(0));
-                                Log.d("hehehe2", res.getString(1));
-                                Log.d("hehehe3", res.getString(2));
+                    mDatabase.getDatabase().getReference().addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()){
+                                MarkerData markerData = snapshot.getValue(MarkerData.class);
+                                String key = snapshot.getKey();
+                                if(markerData != null) {
+                                    if (!MainActivity.hashMapTime.containsKey(key) &&
+                                            markerData.latitude <= MainActivity.cur_latitude + 00.0002000 && markerData.latitude >= MainActivity.cur_latitude - 00.0002000 && markerData.longitude <= MainActivity.cur_longitude + 00.0002000 && markerData.longitude >= MainActivity.cur_longitude - 00.0002000) {
 
-                                //MainActivity.list_times.add(res.getString(4));
-                                //MainActivity.list_messages.add(res.getString(0));
-                                Marker marker = mMap.addMarker(new MarkerOptions().title(res.getString(1)).position(new LatLng(res.getDouble(res.getColumnIndex("latitude")), res.getDouble(res.getColumnIndex("longitude")))).snippet(res.getString(1)));
-                                MainActivity.hashMapMarker.put(res.getString(0), marker);
-                                MainActivity.hashMapTime.put(res.getString(0), res.getString(4));
-                                //MainActivity.list_latitude.add(res.getDouble(res.getColumnIndex("longitude")));
-                                //MainActivity.list_longitude.add(res.getDouble(res.getColumnIndex("latitude")));
+                                        //MainActivity.list_times.add(res.getString(4));
+                                        //MainActivity.list_messages.add(res.getString(0));
+                                        Log.d("asjflkj32ipf", String.valueOf(markerData.longitude));
+                                        Log.d("asjflk2131j32ipf", String.valueOf(markerData.text));
+
+                                        Marker marker = mMap.addMarker(new MarkerOptions().title(markerData.text).position(new LatLng(markerData.latitude, markerData.longitude)).snippet(markerData.text));
+                                        MainActivity.hashMapMarker.put(snapshot.getKey(), marker);
+                                        MainActivity.hashMapTime.put(snapshot.getKey(), markerData.time);
+                                        //MainActivity.list_latitude.add(res.getDouble(res.getColumnIndex("longitude")));
+                                        //MainActivity.list_longitude.add(res.getDouble(res.getColumnIndex("latitude")));
+                                    }
+                                }
                             }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
 
                         }
-                    }
+                    });
+                    //Old database code:
+                    //                    if (res.getCount() != 0) {
+//                        while (res.moveToNext()) {
+//                            String key = res.getString(0);
+//                            Log.d("asdffh32oif", String.valueOf(res.getDouble(res.getColumnIndex("latitude"))));
+//                            Log.d("asd123ffh32oif", String.valueOf(res.getDouble(res.getColumnIndex("longitude"))));
+//
+//                            if (!MainActivity.hashMapTime.containsKey(key) &&
+//                                    res.getDouble(res.getColumnIndex("latitude")) <= MainActivity.cur_latitude + 00.0002000 && res.getDouble(res.getColumnIndex("latitude")) >= MainActivity.cur_latitude - 00.0002000 && res.getDouble(res.getColumnIndex("longitude")) <= MainActivity.cur_longitude + 00.0002000 && res.getDouble(res.getColumnIndex("longitude")) >= MainActivity.cur_longitude - 00.0002000) {
+//                                Log.d("hehehe1", res.getString(0));
+//                                Log.d("hehehe2", res.getString(1));
+//                                Log.d("hehehe3", res.getString(2));
+//
+//                                //MainActivity.list_times.add(res.getString(4));
+//                                //MainActivity.list_messages.add(res.getString(0));
+//                                Marker marker = mMap.addMarker(new MarkerOptions().title(res.getString(1)).position(new LatLng(res.getDouble(res.getColumnIndex("latitude")), res.getDouble(res.getColumnIndex("longitude")))).snippet(res.getString(1)));
+//                                MainActivity.hashMapMarker.put(res.getString(0), marker);
+//                                MainActivity.hashMapTime.put(res.getString(0), res.getString(4));
+//                                //MainActivity.list_latitude.add(res.getDouble(res.getColumnIndex("longitude")));
+//                                //MainActivity.list_longitude.add(res.getDouble(res.getColumnIndex("latitude")));
+//                            }
+//
+//                        }
+//                    }
                 }
                 catch(Exception e){
                     Log.d("EXCEPTION(addmarker):", e.getMessage());
                 }
 
-                res.moveToFirst();
-                res.close();
+//                res.moveToFirst();
+//                res.close();
                 handler.postDelayed(this, 10000);
 
             }
@@ -318,6 +352,13 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
      */
     @Override
     public void onConnected(Bundle connectionHint) {
+        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            if (location == null) {
+                mGoogleApiClient.connect();
+            }
+        }
 
         SupportMapFragment mapFragment = (SupportMapFragment)this.getChildFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -473,8 +514,11 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     + "/" + String.valueOf(calen.get(calen.MINUTE))
                     + "/" + String.valueOf(calen.get(calen.SECOND));
                     Log.d("hmhmhm", current_time);
-                    myDb.insertData(input_text,longitude_info , latitude_info, current_time
-                    );
+                    MarkerData temp = new MarkerData(input_text, longitude_info, latitude_info, current_time);
+                    mDatabase.push().setValue(temp);
+
+//                    myDb.insertData(input_text,longitude_info , latitude_info, current_time
+//                    );
 
                     //mMap.addMarker(new MarkerOptions().title(input_text).position(new LatLng(latitude_info, longitude_info)).snippet(""));
 
@@ -501,6 +545,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         }
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
             MainActivity.cur_latitude = LocationServices.FusedLocationApi
                     .getLastLocation(mGoogleApiClient).getLatitude();
 

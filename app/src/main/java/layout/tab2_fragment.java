@@ -88,10 +88,10 @@ public class tab2_fragment extends Fragment {
                             if (string_array == null) {
                                 Log.d("sadf", "ru23hro2iofwesn: ");
                             }
-                            Log.d("sadfho24ifj2", string_array[1]);
+                            Log.d("sadfh32r2r3o24ifj2", key);
 
                             tab2_Markers.put(key, string_array);
-                            hash_messages.put(key, MainActivity.hashMapMarker.get(key).getSnippet());
+                            hash_messages.put(key, message);
 
                             recyclerViewAdapter.addMessage(string_array[1], key);
                             cur_index += 1;
@@ -182,7 +182,7 @@ public class tab2_fragment extends Fragment {
                 public void onClick(View v) {
 
                     AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
-                    dialog.setTitle(hash_messages.get(position));
+                    dialog.setTitle(hash_messages.get(items_keys.get(position)));
                     dialog.setNegativeButton("Close", null);
                     dialog.show();
                 }
