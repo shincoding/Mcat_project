@@ -101,14 +101,14 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     private static final String KEY_LOCATION = "location";
 
     private DatabaseReference mDatabase;
+    Boolean on_paused = false;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tab1_fragment,container,false);
-        //database!!
-      //  myDb = new DatabaseHelper(getActivity());
 
+        // Creating an instance of Firebase data
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
 
@@ -118,6 +118,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
+        //Creating new Api Client
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                 .enableAutoManage(getActivity() /* FragmentActivity */,
                          tab1_fragment.this /* OnConnectionFailedListener */)
@@ -130,7 +131,21 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         setHasOptionsMenu(true);
         return view;
     }
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        on_paused = true;
+        mGoogleApiClient.disconnect();
+    }
 
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        on_paused = false;
+        mGoogleApiClient.reconnect();
+    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -157,6 +172,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.option_get_place) {
             if (mLastKnownLocation != null) {
+                //Checking permission
                 if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                         android.Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED) {
@@ -167,14 +183,11 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                 }
 
             }
-            // 1 - create a child in root object
-            // 2- assign some values to the child object
 
-
-
-
-
-            showCurrentPlace();
+            if (mMap == null) {
+                return true;
+            }
+            addNewMarker();
 
         }
         return true;
@@ -186,8 +199,10 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
      */
     @Override
     public void onMapReady(final GoogleMap map) {
+
         mMap = map;
 
+        //Update current location
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             MainActivity.cur_latitude = LocationServices.FusedLocationApi
@@ -197,17 +212,8 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     .getLastLocation(mGoogleApiClient).getLongitude();
 
         }
-            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 
-            @Override
-            public boolean onMarkerClick(Marker arg0) {
-
-                return true;
-            }
-
-        });
-
-
+        //If connection is not properly made.
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -218,9 +224,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
             {
                 // Turn on the My Location layer and the related control on the map.
                 updateLocationUI();
-
                 // Get the current location of the device and set the position of the map.
-
                 getDeviceLocation();
             }
         }
@@ -230,6 +234,10 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         final Runnable worker = new Runnable() {
             @Override
             public void run() {
+                if (on_paused)
+                {
+                    return;
+                }
                 if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                         android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     MainActivity.cur_latitude = LocationServices.FusedLocationApi
@@ -238,9 +246,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     MainActivity.cur_longitude = LocationServices.FusedLocationApi
                             .getLastLocation(mGoogleApiClient).getLongitude();
 
-                }
-                if (bool_test){
-                    MainActivity.cur_latitude = 0.0;
                 }
 
                 Log.d("qwerpy8wfv", String.valueOf(MainActivity.cur_longitude));
@@ -289,16 +294,12 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                                     if (!MainActivity.hashMapTime.containsKey(key) &&
                                             markerData.latitude <= MainActivity.cur_latitude + 00.0002000 && markerData.latitude >= MainActivity.cur_latitude - 00.0002000 && markerData.longitude <= MainActivity.cur_longitude + 00.0002000 && markerData.longitude >= MainActivity.cur_longitude - 00.0002000) {
 
-                                        //MainActivity.list_times.add(res.getString(4));
-                                        //MainActivity.list_messages.add(res.getString(0));
                                         Log.d("asjflkj32ipf", String.valueOf(markerData.longitude));
                                         Log.d("asjflk2131j32ipf", String.valueOf(markerData.text));
 
                                         Marker marker = mMap.addMarker(new MarkerOptions().title(markerData.text).position(new LatLng(markerData.latitude, markerData.longitude)).snippet(markerData.text));
                                         MainActivity.hashMapMarker.put(snapshot.getKey(), marker);
                                         MainActivity.hashMapTime.put(snapshot.getKey(), markerData.time);
-                                        //MainActivity.list_latitude.add(res.getDouble(res.getColumnIndex("longitude")));
-                                        //MainActivity.list_longitude.add(res.getDouble(res.getColumnIndex("latitude")));
                                     }
                                 }
                             }
@@ -309,37 +310,11 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
 
                         }
                     });
-                    //Old database code:
-                    //                    if (res.getCount() != 0) {
-//                        while (res.moveToNext()) {
-//                            String key = res.getString(0);
-//                            Log.d("asdffh32oif", String.valueOf(res.getDouble(res.getColumnIndex("latitude"))));
-//                            Log.d("asd123ffh32oif", String.valueOf(res.getDouble(res.getColumnIndex("longitude"))));
-//
-//                            if (!MainActivity.hashMapTime.containsKey(key) &&
-//                                    res.getDouble(res.getColumnIndex("latitude")) <= MainActivity.cur_latitude + 00.0002000 && res.getDouble(res.getColumnIndex("latitude")) >= MainActivity.cur_latitude - 00.0002000 && res.getDouble(res.getColumnIndex("longitude")) <= MainActivity.cur_longitude + 00.0002000 && res.getDouble(res.getColumnIndex("longitude")) >= MainActivity.cur_longitude - 00.0002000) {
-//                                Log.d("hehehe1", res.getString(0));
-//                                Log.d("hehehe2", res.getString(1));
-//                                Log.d("hehehe3", res.getString(2));
-//
-//                                //MainActivity.list_times.add(res.getString(4));
-//                                //MainActivity.list_messages.add(res.getString(0));
-//                                Marker marker = mMap.addMarker(new MarkerOptions().title(res.getString(1)).position(new LatLng(res.getDouble(res.getColumnIndex("latitude")), res.getDouble(res.getColumnIndex("longitude")))).snippet(res.getString(1)));
-//                                MainActivity.hashMapMarker.put(res.getString(0), marker);
-//                                MainActivity.hashMapTime.put(res.getString(0), res.getString(4));
-//                                //MainActivity.list_latitude.add(res.getDouble(res.getColumnIndex("longitude")));
-//                                //MainActivity.list_longitude.add(res.getDouble(res.getColumnIndex("latitude")));
-//                            }
-//
-//                        }
-//                    }
                 }
                 catch(Exception e){
                     Log.d("EXCEPTION(addmarker):", e.getMessage());
                 }
 
-//                res.moveToFirst();
-//                res.close();
                 handler.postDelayed(this, 10000);
 
             }
@@ -347,6 +322,9 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         handler.post(worker);
 
     }
+
+
+
     /**
      * Builds the map when the Google Play services client is successfully connected.
      */
@@ -440,10 +418,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         }
 
     }
-    public boolean onMarkerClick(final Marker marker) {
-        Log.i("GoogleMapActivity", "onMarkerClick");
-        return false;
-    }
+
     /**
      * Handles the result of the request for location permissions.
      */
@@ -464,31 +439,9 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         updateLocationUI();
     }
 
-    /**
-     * Prompts the user to select the current place from a list of likely places, and shows the
-     * current place on the map - provided the user has granted location permission.
-     */
 
+    private void addNewMarker(){
 
-    /**
-     * Prompts the user to select the current place from a list of likely places, and shows the
-     * current place on the map - provided the user has granted location permission.
-     */
-    private void showCurrentPlace() {
-        if (mMap == null) {
-            return;
-        }
-        openMessageDialog();
-    }
-
-    private void openMessageDialog(){
-//        if (bool_test == false){
-//            bool_test = true;
-//
-//        }
-//        else{
-//            bool_test = false;
-//        }
         AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
         dialog.setTitle("MESSAGE");
         dialog.setMessage("Type in message");
@@ -516,13 +469,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     Log.d("hmhmhm", current_time);
                     MarkerData temp = new MarkerData(input_text, longitude_info, latitude_info, current_time);
                     mDatabase.push().setValue(temp);
-
-//                    myDb.insertData(input_text,longitude_info , latitude_info, current_time
-//                    );
-
-                    //mMap.addMarker(new MarkerOptions().title(input_text).position(new LatLng(latitude_info, longitude_info)).snippet(""));
-
-
 
                 }
             }
