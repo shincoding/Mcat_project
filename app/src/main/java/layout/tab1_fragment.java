@@ -3,6 +3,7 @@ import android.location.LocationManager;
 import android.os.Handler;
 
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -69,7 +70,8 @@ import java.util.ArrayList;
 import java.util.TimerTask;
 
 public class tab1_fragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener {
+    LocationRequest mLocationRequest;
 
 
     //Database
@@ -121,7 +123,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         //Creating new Api Client
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                 .enableAutoManage(getActivity() /* FragmentActivity */,
-                         tab1_fragment.this /* OnConnectionFailedListener */)
+                        tab1_fragment.this /* OnConnectionFailedListener */)
                 .addConnectionCallbacks(tab1_fragment.this)
                 .addApi(LocationServices.API)
                 .addApi(Places.GEO_DATA_API)
@@ -213,22 +215,10 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
 
         }
 
-        //If connection is not properly made.
-        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (location == null) {
-                mGoogleApiClient.connect();
-            }
-            else
-            {
-                // Turn on the My Location layer and the related control on the map.
-                updateLocationUI();
-                // Get the current location of the device and set the position of the map.
-                getDeviceLocation();
-            }
-        }
-
+        // Turn on the My Location layer and the related control on the map.
+        updateLocationUI();
+        // Get the current location of the device and set the position of the map.
+        getDeviceLocation();
 
         final Handler handler = new Handler();
         final Runnable worker = new Runnable() {
@@ -238,15 +228,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                 {
                     return;
                 }
-                if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
-                        android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    MainActivity.cur_latitude = LocationServices.FusedLocationApi
-                            .getLastLocation(mGoogleApiClient).getLatitude();
 
-                    MainActivity.cur_longitude = LocationServices.FusedLocationApi
-                            .getLastLocation(mGoogleApiClient).getLongitude();
-
-                }
 
                 Log.d("qwerpy8wfv", String.valueOf(MainActivity.cur_longitude));
                 Log.d("qwerpy8wfv2", String.valueOf(MainActivity.cur_latitude));
@@ -330,12 +312,17 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
      */
     @Override
     public void onConnected(Bundle connectionHint) {
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(1000); // Update location every second
+
+
+
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (location == null) {
-                mGoogleApiClient.connect();
-            }
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, mLocationRequest, this);
         }
 
         SupportMapFragment mapFragment = (SupportMapFragment)this.getChildFragmentManager().findFragmentById(R.id.map);
@@ -361,7 +348,11 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         Log.d(TAG, "Play services connection suspended");
     }
 
+    public void onLocationChanged(Location location) {
+        MainActivity.cur_longitude = location.getLatitude();
+        MainActivity.cur_longitude = location.getLongitude();
 
+    }
 
 
 
@@ -376,15 +367,15 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
-        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            MainActivity.cur_latitude = LocationServices.FusedLocationApi
-                    .getLastLocation(mGoogleApiClient).getLatitude();
-
-            MainActivity.cur_longitude = LocationServices.FusedLocationApi
-                    .getLastLocation(mGoogleApiClient).getLongitude();
-
-        }
+//        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
+//                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+//            MainActivity.cur_latitude = LocationServices.FusedLocationApi
+//                    .getLastLocation(mGoogleApiClient).getLatitude();
+//
+//            MainActivity.cur_longitude = LocationServices.FusedLocationApi
+//                    .getLastLocation(mGoogleApiClient).getLongitude();
+//
+//        }
 
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -461,11 +452,11 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
 
                     Calendar calen = Calendar.getInstance();
                     String current_time = String.valueOf(calen.get(calen.YEAR)) + "/"
-                    + String.valueOf(calen.get(calen.MONTH)+1) + "/"
-                    + String.valueOf(calen.get(calen.DAY_OF_MONTH))
-                    + "/" + String.valueOf(calen.get(calen.HOUR_OF_DAY))
-                    + "/" + String.valueOf(calen.get(calen.MINUTE))
-                    + "/" + String.valueOf(calen.get(calen.SECOND));
+                            + String.valueOf(calen.get(calen.MONTH)+1) + "/"
+                            + String.valueOf(calen.get(calen.DAY_OF_MONTH))
+                            + "/" + String.valueOf(calen.get(calen.HOUR_OF_DAY))
+                            + "/" + String.valueOf(calen.get(calen.MINUTE))
+                            + "/" + String.valueOf(calen.get(calen.SECOND));
                     Log.d("hmhmhm", current_time);
                     MarkerData temp = new MarkerData(input_text, longitude_info, latitude_info, current_time);
                     mDatabase.push().setValue(temp);
