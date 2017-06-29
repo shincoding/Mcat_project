@@ -88,7 +88,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
-    private static final int DEFAULT_ZOOM = 15;
+    private static final int DEFAULT_ZOOM = 17;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 
@@ -111,7 +111,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         View view = inflater.inflate(R.layout.fragment_tab1_fragment,container,false);
 
         // Creating an instance of Firebase data
-        mDatabase = FirebaseDatabase.getInstance().getReference();
 
 
         // Retrieve location and camera position from saved instance state.
@@ -203,6 +202,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     public void onMapReady(final GoogleMap map) {
 
         mMap = map;
+        mMap.getUiSettings().setAllGesturesEnabled(false);
 
         //Update current location
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
@@ -265,6 +265,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
 
 
                 try {
+                    mDatabase = FirebaseDatabase.getInstance().getReference();
 
                     mDatabase.getDatabase().getReference().addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -312,6 +313,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
      */
     @Override
     public void onConnected(Bundle connectionHint) {
+
         mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setInterval(1000); // Update location every second
@@ -351,6 +353,21 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     public void onLocationChanged(Location location) {
         MainActivity.cur_longitude = location.getLatitude();
         MainActivity.cur_longitude = location.getLongitude();
+
+
+        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            LatLng new_position = new LatLng(MainActivity.cur_latitude, MainActivity.cur_longitude);
+            if (new_position != null)
+            {
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(MainActivity.cur_latitude, MainActivity.cur_longitude), DEFAULT_ZOOM));
+            }
+
+
+        }
+
 
     }
 
@@ -459,6 +476,8 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                             + "/" + String.valueOf(calen.get(calen.SECOND));
                     Log.d("hmhmhm", current_time);
                     MarkerData temp = new MarkerData(input_text, longitude_info, latitude_info, current_time);
+                    mDatabase = FirebaseDatabase.getInstance().getReference();
+
                     mDatabase.push().setValue(temp);
 
                 }

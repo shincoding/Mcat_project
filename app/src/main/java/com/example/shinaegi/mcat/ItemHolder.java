@@ -35,6 +35,7 @@ public class ItemHolder extends ViewHolder<String>{
     protected void onSetModel(String newModel)
     {
         itemTextView.setText(newModel);
+        itemTextView.setTextColor(0xFFFFFF - newModel.hashCode());
         itemTextView.setBackgroundColor(newModel.hashCode());
     }
 
