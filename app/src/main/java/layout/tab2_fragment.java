@@ -79,7 +79,7 @@ public class tab2_fragment extends Fragment {
 
                     for (String key : MainActivity.hashMapTime.keySet()) {
                         Log.d("2rfgouewh", key);
-
+                        //add in items
                         if (!tab2_Markers.containsKey(key)) {
                             String message = MainActivity.hashMapMarker.get(key).getSnippet();
                             String time = MainActivity.hashMapTime.get(key);
@@ -106,7 +106,7 @@ public class tab2_fragment extends Fragment {
 
                 try{
                     ArrayList<String> keys_deleted = new ArrayList<String>();
-
+                    // this is for markers that are outside of location scope.
 
                     for (String key : tab2_Markers.keySet()) {
                         if (!MainActivity.hashMapTime.containsKey(key)) {

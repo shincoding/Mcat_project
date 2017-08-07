@@ -102,7 +102,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
 
-    private DatabaseReference mDatabase;
     Boolean on_paused = false;
 
     @Nullable
@@ -238,17 +237,12 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     for (String key : set_of_keys) {
                         if (MainActivity.hashMapMarker.get(key).getPosition().latitude > MainActivity.cur_latitude + 00.0002000 || MainActivity.hashMapMarker.get(key).getPosition().latitude < MainActivity.cur_latitude - 00.0002000 || MainActivity.hashMapMarker.get(key).getPosition().longitude > MainActivity.cur_longitude + 00.0002000 && MainActivity.hashMapMarker.get(key).getPosition().longitude < MainActivity.cur_longitude - 00.0002000) {
                             //int the_key = MainActivity.list_longitude.lastIndexOf(MainActivity.hashMapMarker.get(key).getPosition().latitude);
+                            //Put away keys that are outside of location scope.
                             keys_deleted.add(key);
-
-                            //MainActivity.hashMapMarker.remove(key);
-
-
                         }
                     }
                     for (String key : keys_deleted){
-                        //Marker m = MainActivity.hashMapMarker.get(key);
-                        Log.d("THE KEY:", "FSDAF");
-
+                        //remove location marker.
                         Log.d("THE KEY:", "ABC" + MainActivity.hashMapMarker.get(key).getSnippet());
                         Log.d("THE KEY:", "DEF" + MainActivity.hashMapTime.get(key));
 
@@ -261,16 +255,15 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     Log.d("EXCEPTION(deletemrker):", e.getMessage());
                 }
 
-//                Cursor res = myDb.getAllData();
-
 
                 try {
-                    mDatabase = FirebaseDatabase.getInstance().getReference();
+                    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 
                     mDatabase.getDatabase().getReference().addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             for (DataSnapshot snapshot : dataSnapshot.getChildren()){
+                                //add marker in the screen.
                                 MarkerData markerData = snapshot.getValue(MarkerData.class);
                                 String key = snapshot.getKey();
                                 if(markerData != null) {
@@ -476,7 +469,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                             + "/" + String.valueOf(calen.get(calen.SECOND));
                     Log.d("hmhmhm", current_time);
                     MarkerData temp = new MarkerData(input_text, longitude_info, latitude_info, current_time);
-                    mDatabase = FirebaseDatabase.getInstance().getReference();
+                    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 
                     mDatabase.push().setValue(temp);
 
