@@ -13,6 +13,9 @@ You can also see the memories of other users in your location. Ever wondered how
 
 -Add your information, which will be stored outside of your device (remember to not share personal information!)
 
+### Screenshots
+![Screenshot](https://github.com/shincoding/Mcat_project/blob/master/20705975_1243012595825693_851079375_o%20(1).png)
+![Screenshot](https://github.com/shincoding/Mcat_project/blob/master/20706354_1243012582492361_916602952_o%20(1).png)
 
 <br />
 <br />
