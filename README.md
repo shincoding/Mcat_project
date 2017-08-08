@@ -18,5 +18,5 @@ You can also see the memories of other users in your location. Ever wondered how
 <br />
 
 
-Please let me know if you have any comment about this app!
+This app is currently under development. Please let me know if you have any comment about this app!
 
