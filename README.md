@@ -14,7 +14,8 @@ You can also see the memories of other users in your location. Ever wondered how
 -Add your information, which will be stored outside of your device (remember to not share personal information!)
 
 
-
+<br />
+<br />
 
 
 Please let me know if you have any comment about this app!
