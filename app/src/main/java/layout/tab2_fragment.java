@@ -49,9 +49,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class tab2_fragment extends Fragment {
 
-    private Button btnTEST;
+    // This is for menu
     private CustomAdapter recyclerViewAdapter;
+    // Current number of menu items
     public static int cur_index;
+    // Collections of info
     public static HashMap<String, String> hash_messages;
     public static HashMap<String,String[]> tab2_Markers;
 
@@ -66,10 +68,12 @@ public class tab2_fragment extends Fragment {
 
         recyclerViewAdapter = new CustomAdapter();
 
+        //Set up recycleView
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recyclerview_items);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setAdapter(recyclerViewAdapter);
 
+        //Repeat in an interval
         final Handler handler = new Handler();
         final Runnable worker = new Runnable() {
             @Override
@@ -78,17 +82,12 @@ public class tab2_fragment extends Fragment {
                 try {
 
                     for (String key : MainActivity.hashMapTime.keySet()) {
-                        Log.d("2rfgouewh", key);
                         //add in items
                         if (!tab2_Markers.containsKey(key)) {
                             String message = MainActivity.hashMapMarker.get(key).getSnippet();
                             String time = MainActivity.hashMapTime.get(key);
 
                             String[] string_array = {message, time, String.valueOf(cur_index)};
-                            if (string_array == null) {
-                                Log.d("sadf", "ru23hro2iofwesn: ");
-                            }
-                            Log.d("sadfh32r2r3o24ifj2", key);
 
                             tab2_Markers.put(key, string_array);
                             hash_messages.put(key, message);
@@ -107,14 +106,13 @@ public class tab2_fragment extends Fragment {
                 try{
                     ArrayList<String> keys_deleted = new ArrayList<String>();
                     // this is for markers that are outside of location scope.
-
                     for (String key : tab2_Markers.keySet()) {
                         if (!MainActivity.hashMapTime.containsKey(key)) {
                             keys_deleted.add(key);
-                            Log.d("aa","1231a3dd");
 
                         }
                     }
+                    //Remove all the items from keys_deleted
                     for (String key : keys_deleted) {
                         Log.d("valUE OF INDEX:", tab2_Markers.get(key)[2]);
                         String[] deleted_list = tab2_Markers.remove(key);
@@ -159,7 +157,6 @@ public class tab2_fragment extends Fragment {
         }
 
 
-
         @Override
         public long getItemId(int position)
         {
@@ -197,8 +194,6 @@ public class tab2_fragment extends Fragment {
 
         public void addMessage(String message, String key)
         {
-            Log.d("sadfho24ifj2", message);
-
             items.add(cur_index, message);
             items_keys.add(cur_index, key);
             notifyDataSetChanged();

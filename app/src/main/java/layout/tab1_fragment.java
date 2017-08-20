@@ -73,11 +73,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
     LocationRequest mLocationRequest;
 
-
-    //Database
-    DatabaseHelper myDb;
-
-
     private static final String TAG = MainActivity.class.getSimpleName();
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
@@ -92,8 +87,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 
-    public boolean bool_test = false;
-
     // The geographical location where the device is currently located. That is, the last-known
     // location retrieved by the Fused Location Provider.
     private Location mLastKnownLocation;
@@ -102,15 +95,13 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
 
+    // when program closes
     Boolean on_paused = false;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_tab1_fragment,container,false);
-
-        // Creating an instance of Firebase data
-
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -176,6 +167,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                 if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                         android.Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED) {
+                    // For Android Monitor
                     Log.d(TAG, "Longitude: " + String.valueOf(LocationServices.FusedLocationApi
                             .getLastLocation(mGoogleApiClient).getLongitude()));
                     Log.d(TAG, "Latitude: " + String.valueOf(LocationServices.FusedLocationApi
@@ -187,6 +179,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
             if (mMap == null) {
                 return true;
             }
+            // To add a new Marker.
             addNewMarker();
 
         }
@@ -201,9 +194,10 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     public void onMapReady(final GoogleMap map) {
 
         mMap = map;
+        // Disable scrolling so that the map is fixed on the current location
         mMap.getUiSettings().setAllGesturesEnabled(false);
 
-        //Update current location
+        // Update current location
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             MainActivity.cur_latitude = LocationServices.FusedLocationApi
@@ -219,6 +213,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
 
+        // Repeat on an interval
         final Handler handler = new Handler();
         final Runnable worker = new Runnable() {
             @Override
@@ -228,9 +223,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     return;
                 }
 
-
-                Log.d("qwerpy8wfv", String.valueOf(MainActivity.cur_longitude));
-                Log.d("qwerpy8wfv2", String.valueOf(MainActivity.cur_latitude));
                 Set<String> set_of_keys =  MainActivity.hashMapTime.keySet();
                 try {
                     ArrayList<String> keys_deleted = new ArrayList<String>();
@@ -269,9 +261,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                                 if(markerData != null) {
                                     if (!MainActivity.hashMapTime.containsKey(key) &&
                                             markerData.latitude <= MainActivity.cur_latitude + 00.0002000 && markerData.latitude >= MainActivity.cur_latitude - 00.0002000 && markerData.longitude <= MainActivity.cur_longitude + 00.0002000 && markerData.longitude >= MainActivity.cur_longitude - 00.0002000) {
-
-                                        Log.d("asjflkj32ipf", String.valueOf(markerData.longitude));
-                                        Log.d("asjflk2131j32ipf", String.valueOf(markerData.text));
 
                                         Marker marker = mMap.addMarker(new MarkerOptions().title(markerData.text).position(new LatLng(markerData.latitude, markerData.longitude)).snippet(markerData.text));
                                         MainActivity.hashMapMarker.put(snapshot.getKey(), marker);
@@ -351,13 +340,11 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+            //Update camera position.
             LatLng new_position = new LatLng(MainActivity.cur_latitude, MainActivity.cur_longitude);
-            if (new_position != null)
-            {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(MainActivity.cur_latitude, MainActivity.cur_longitude), DEFAULT_ZOOM));
-            }
 
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(MainActivity.cur_latitude, MainActivity.cur_longitude), DEFAULT_ZOOM));
 
         }
 
@@ -377,15 +364,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
-//        if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
-//                android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//            MainActivity.cur_latitude = LocationServices.FusedLocationApi
-//                    .getLastLocation(mGoogleApiClient).getLatitude();
-//
-//            MainActivity.cur_longitude = LocationServices.FusedLocationApi
-//                    .getLastLocation(mGoogleApiClient).getLongitude();
-//
-//        }
 
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -461,13 +439,12 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                             .getLastLocation(mGoogleApiClient).getLatitude();
 
                     Calendar calen = Calendar.getInstance();
-                    String current_time = String.valueOf(calen.get(calen.YEAR)) + "/"
-                            + String.valueOf(calen.get(calen.MONTH)+1) + "/"
+                    String current_time = String.valueOf(calen.get(calen.YEAR)) + "-"
+                            + String.valueOf(calen.get(calen.MONTH)+1) + "-"
                             + String.valueOf(calen.get(calen.DAY_OF_MONTH))
-                            + "/" + String.valueOf(calen.get(calen.HOUR_OF_DAY))
-                            + "/" + String.valueOf(calen.get(calen.MINUTE))
-                            + "/" + String.valueOf(calen.get(calen.SECOND));
-                    Log.d("hmhmhm", current_time);
+                            + " " + String.valueOf(calen.get(calen.HOUR_OF_DAY))
+                            + ":" + String.valueOf(calen.get(calen.MINUTE))
+                            + ":" + String.valueOf(calen.get(calen.SECOND));
                     MarkerData temp = new MarkerData(input_text, longitude_info, latitude_info, current_time);
                     DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
 

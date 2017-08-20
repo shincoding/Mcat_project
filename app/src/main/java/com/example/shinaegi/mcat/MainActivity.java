@@ -92,8 +92,6 @@ public class MainActivity extends AppCompatActivity
     public static HashMap<String,String> hashMapTime;
 
 
-            private SectionsPageAdapter mSectionsPageAdapter;
-
     private ViewPager mViewPager;
 
 
@@ -110,7 +108,6 @@ public class MainActivity extends AppCompatActivity
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mSectionsPageAdapter = new SectionsPageAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
@@ -129,37 +126,26 @@ public class MainActivity extends AppCompatActivity
         viewPager.setAdapter(adapter);
     }
 
-            /**
-             * Sets up the options menu.
-             *
-             * @param menu The options menu.
-             * @return Boolean.
-             */
-            @Override
-            public boolean onCreateOptionsMenu(Menu menu) {
-
-                getMenuInflater().inflate(R.menu.mcat_menu, menu);
-
-                return true;
-            }
-
-            public boolean onOptionsItemSelected(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.option_get_place:
-                        // Do Activity menu item stuff here
-                        return false;
-
-                    default:
-                        break;
-                }
-
-                return false;
-            }
-
-
     /**
-     * Saves the state of the map when the activity is paused.
+     * Sets up the options menu.
      */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        getMenuInflater().inflate(R.menu.mcat_menu, menu);
+
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.option_get_place:
+                return false;
+            default:
+                break;
+        }
+        return false;
+    }
 
 
 }
