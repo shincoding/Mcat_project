@@ -82,29 +82,10 @@ import layout.tab2_fragment;
 public class MainActivity extends AppCompatActivity
         {
 
-    public static ArrayList<Double> list_longitude;
-    public static ArrayList<Double> list_latitude;
-    public static ArrayList<String> list_messages;
-    public static ArrayList<String> list_times;
-    public static Double cur_longitude;
-    public static Double cur_latitude;
-    public static HashMap<String,Marker> hashMapMarker;
-    public static HashMap<String,String> hashMapTime;
-
-
     private ViewPager mViewPager;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        //Array of GPS info of current data.
-        list_longitude = new ArrayList<Double>();
-        list_latitude = new ArrayList<Double>();
-        list_times = new ArrayList<String>();
-        list_messages = new ArrayList<String>();
-        hashMapMarker = new HashMap<>();
-        hashMapTime = new HashMap<>();
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);

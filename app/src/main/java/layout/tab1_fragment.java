@@ -1,9 +1,11 @@
 package layout;
-import android.location.LocationManager;
 import android.os.Handler;
 
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+
+import com.example.shinaegi.mcat.TempData;
+
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -12,15 +14,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.Set;
-import java.util.Timer;
+
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringDef;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -32,24 +32,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.HashMap;
 import java.util.Calendar;
 
-import android.content.Context;
-import android.net.Uri;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import com.example.shinaegi.mcat.DatabaseHelper;
 import com.example.shinaegi.mcat.MainActivity;
 import com.example.shinaegi.mcat.R;
 import com.google.android.gms.common.ConnectionResult;
@@ -58,7 +44,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -67,33 +52,36 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
-import java.util.TimerTask;
 
-public class tab1_fragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener {
-    LocationRequest mLocationRequest;
+public class tab1_fragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private GoogleMap mMap;
-    private CameraPosition mCameraPosition;
+
+    private FirebaseObject firebaseObj = new FirebaseObject();
+
+//    MapData mapData = new MapData();
+    LocationRequest mLocationRequest;
+
+    GoogleMap mMap;
+    CameraPosition mCameraPosition;
 
     // The entry point to Google Play services, used by the Places API and Fused Location Provider.
-    private GoogleApiClient mGoogleApiClient;
+    GoogleApiClient mGoogleApiClient;
 
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
-    private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
-    private static final int DEFAULT_ZOOM = 17;
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private boolean mLocationPermissionGranted;
+    LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
+    static final int DEFAULT_ZOOM = 17;
+    static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    boolean mLocationPermissionGranted;
 
     // The geographical location where the device is currently located. That is, the last-known
     // location retrieved by the Fused Location Provider.
-    private Location mLastKnownLocation;
+    Location mLastKnownLocation;
 
     // Keys for storing activity state.
-    private static final String KEY_CAMERA_POSITION = "camera_position";
-    private static final String KEY_LOCATION = "location";
+    static final String KEY_CAMERA_POSITION = "camera_position";
+    static final String KEY_LOCATION = "location";
 
     // when program closes
     Boolean on_paused = false;
@@ -162,20 +150,6 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.option_get_place) {
-            if (mLastKnownLocation != null) {
-                //Checking permission
-                if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
-                        android.Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    // For Android Monitor
-                    Log.d(TAG, "Longitude: " + String.valueOf(LocationServices.FusedLocationApi
-                            .getLastLocation(mGoogleApiClient).getLongitude()));
-                    Log.d(TAG, "Latitude: " + String.valueOf(LocationServices.FusedLocationApi
-                            .getLastLocation(mGoogleApiClient).getLatitude()));
-                }
-
-            }
-
             if (mMap == null) {
                 return true;
             }
@@ -195,15 +169,15 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
 
         mMap = map;
         // Disable scrolling so that the map is fixed on the current location
-        mMap.getUiSettings().setAllGesturesEnabled(false);
+      // mMap.getUiSettings().setAllGesturesEnabled(false);
 
         // Update current location
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            MainActivity.cur_latitude = LocationServices.FusedLocationApi
+            TempData.cur_latitude = LocationServices.FusedLocationApi
                     .getLastLocation(mGoogleApiClient).getLatitude();
 
-            MainActivity.cur_longitude = LocationServices.FusedLocationApi
+            TempData.cur_longitude = LocationServices.FusedLocationApi
                     .getLastLocation(mGoogleApiClient).getLongitude();
 
         }
@@ -223,11 +197,11 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     return;
                 }
 
-                Set<String> set_of_keys =  MainActivity.hashMapTime.keySet();
+                Set<String> set_of_keys =  TempData.hashMapTime.keySet();
                 try {
                     ArrayList<String> keys_deleted = new ArrayList<String>();
                     for (String key : set_of_keys) {
-                        if (MainActivity.hashMapMarker.get(key).getPosition().latitude > MainActivity.cur_latitude + 00.0002000 || MainActivity.hashMapMarker.get(key).getPosition().latitude < MainActivity.cur_latitude - 00.0002000 || MainActivity.hashMapMarker.get(key).getPosition().longitude > MainActivity.cur_longitude + 00.0002000 && MainActivity.hashMapMarker.get(key).getPosition().longitude < MainActivity.cur_longitude - 00.0002000) {
+                        if (TempData.hashMapMarker.get(key).getPosition().latitude > TempData.cur_latitude + 00.0002000 || TempData.hashMapMarker.get(key).getPosition().latitude < TempData.cur_latitude - 00.0002000 || TempData.hashMapMarker.get(key).getPosition().longitude > TempData.cur_longitude + 00.0002000 && TempData.hashMapMarker.get(key).getPosition().longitude < TempData.cur_longitude - 00.0002000) {
                             //int the_key = MainActivity.list_longitude.lastIndexOf(MainActivity.hashMapMarker.get(key).getPosition().latitude);
                             //Put away keys that are outside of location scope.
                             keys_deleted.add(key);
@@ -235,11 +209,11 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                     }
                     for (String key : keys_deleted){
                         //remove location marker.
-                        Log.d("THE KEY:", "ABC" + MainActivity.hashMapMarker.get(key).getSnippet());
-                        Log.d("THE KEY:", "DEF" + MainActivity.hashMapTime.get(key));
+                        Log.d("THE KEY:", "ABC" + TempData.hashMapMarker.get(key).getSnippet());
+                        Log.d("THE KEY:", "DEF" + TempData.hashMapTime.get(key));
 
-                        Marker m = MainActivity.hashMapMarker.get(key);
-                        MainActivity.hashMapTime.remove(key);
+                        Marker m = TempData.hashMapMarker.get(key);
+                        TempData.hashMapTime.remove(key);
                         m.remove();
                     }
                 }
@@ -249,32 +223,8 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
 
 
                 try {
-                    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-
-                    mDatabase.getDatabase().getReference().addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()){
-                                //add marker in the screen.
-                                MarkerData markerData = snapshot.getValue(MarkerData.class);
-                                String key = snapshot.getKey();
-                                if(markerData != null) {
-                                    if (!MainActivity.hashMapTime.containsKey(key) &&
-                                            markerData.latitude <= MainActivity.cur_latitude + 00.0002000 && markerData.latitude >= MainActivity.cur_latitude - 00.0002000 && markerData.longitude <= MainActivity.cur_longitude + 00.0002000 && markerData.longitude >= MainActivity.cur_longitude - 00.0002000) {
-
-                                        Marker marker = mMap.addMarker(new MarkerOptions().title(markerData.text).position(new LatLng(markerData.latitude, markerData.longitude)).snippet(markerData.text));
-                                        MainActivity.hashMapMarker.put(snapshot.getKey(), marker);
-                                        MainActivity.hashMapTime.put(snapshot.getKey(), markerData.time);
-                                    }
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
+                    firebaseObj.recalibrate();
+                    firebaseObj.setMarkers(mMap);
                 }
                 catch(Exception e){
                     Log.d("EXCEPTION(addmarker):", e.getMessage());
@@ -333,18 +283,18 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
     }
 
     public void onLocationChanged(Location location) {
-        MainActivity.cur_longitude = location.getLatitude();
-        MainActivity.cur_longitude = location.getLongitude();
+        TempData.cur_longitude = location.getLatitude();
+        TempData.cur_longitude = location.getLongitude();
 
 
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             //Update camera position.
-            LatLng new_position = new LatLng(MainActivity.cur_latitude, MainActivity.cur_longitude);
+            LatLng new_position = new LatLng(TempData.cur_latitude, TempData.cur_longitude);
 
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(MainActivity.cur_latitude, MainActivity.cur_longitude), DEFAULT_ZOOM));
+                    new LatLng(TempData.cur_latitude, TempData.cur_longitude), DEFAULT_ZOOM));
 
         }
 
@@ -357,7 +307,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
      * Gets the current location of the device, and positions the map's camera.
      */
     private void getDeviceLocation() {
-        Log.d("qwerpy8wfv", String.valueOf(MainActivity.cur_latitude));
+        Log.d("qwerpy8wfv", String.valueOf(TempData.cur_latitude));
 
         /*
          * Request location permission, so that we can get the location of the
@@ -464,7 +414,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
      * Updates the map's UI settings based on whether the user has granted location permission.
      */
     private void updateLocationUI() {
-        Log.d("qwerpy8wfv", String.valueOf(MainActivity.cur_latitude));
+        Log.d("qwerpy8wfv", String.valueOf(TempData.cur_latitude));
 
         if (mMap == null) {
             return;
@@ -472,10 +422,10 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         if (ContextCompat.checkSelfPermission(getActivity().getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-            MainActivity.cur_latitude = LocationServices.FusedLocationApi
+            TempData.cur_latitude = LocationServices.FusedLocationApi
                     .getLastLocation(mGoogleApiClient).getLatitude();
 
-            MainActivity.cur_longitude = LocationServices.FusedLocationApi
+            TempData.cur_longitude = LocationServices.FusedLocationApi
                     .getLastLocation(mGoogleApiClient).getLongitude();
         }
         /*

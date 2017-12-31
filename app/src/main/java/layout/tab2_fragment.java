@@ -41,7 +41,7 @@ import java.util.List;
 
 
 import com.example.shinaegi.mcat.ItemHolder;
-import com.example.shinaegi.mcat.MainActivity;
+import com.example.shinaegi.mcat.TempData;
 import com.example.shinaegi.mcat.R;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -81,11 +81,11 @@ public class tab2_fragment extends Fragment {
 
                 try {
 
-                    for (String key : MainActivity.hashMapTime.keySet()) {
+                    for (String key : TempData.hashMapTime.keySet()) {
                         //add in items
                         if (!tab2_Markers.containsKey(key)) {
-                            String message = MainActivity.hashMapMarker.get(key).getSnippet();
-                            String time = MainActivity.hashMapTime.get(key);
+                            String message = TempData.hashMapMarker.get(key).getSnippet();
+                            String time = TempData.hashMapTime.get(key);
 
                             String[] string_array = {message, time, String.valueOf(cur_index)};
 
@@ -107,7 +107,7 @@ public class tab2_fragment extends Fragment {
                     ArrayList<String> keys_deleted = new ArrayList<String>();
                     // this is for markers that are outside of location scope.
                     for (String key : tab2_Markers.keySet()) {
-                        if (!MainActivity.hashMapTime.containsKey(key)) {
+                        if (!TempData.hashMapTime.containsKey(key)) {
                             keys_deleted.add(key);
 
                         }
