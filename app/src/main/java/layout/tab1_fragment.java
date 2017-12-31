@@ -192,46 +192,26 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
         final Runnable worker = new Runnable() {
             @Override
             public void run() {
-                if (on_paused)
+                if (!on_paused)
                 {
-                    return;
-                }
-
-                Set<String> set_of_keys =  TempData.hashMapTime.keySet();
-                try {
-                    ArrayList<String> keys_deleted = new ArrayList<String>();
-                    for (String key : set_of_keys) {
-                        if (TempData.hashMapMarker.get(key).getPosition().latitude > TempData.cur_latitude + 00.0002000 || TempData.hashMapMarker.get(key).getPosition().latitude < TempData.cur_latitude - 00.0002000 || TempData.hashMapMarker.get(key).getPosition().longitude > TempData.cur_longitude + 00.0002000 && TempData.hashMapMarker.get(key).getPosition().longitude < TempData.cur_longitude - 00.0002000) {
-                            //int the_key = MainActivity.list_longitude.lastIndexOf(MainActivity.hashMapMarker.get(key).getPosition().latitude);
-                            //Put away keys that are outside of location scope.
-                            keys_deleted.add(key);
-                        }
+                    try {
+                        firebaseObj.removeMarkers();
                     }
-                    for (String key : keys_deleted){
-                        //remove location marker.
-                        Log.d("THE KEY:", "ABC" + TempData.hashMapMarker.get(key).getSnippet());
-                        Log.d("THE KEY:", "DEF" + TempData.hashMapTime.get(key));
-
-                        Marker m = TempData.hashMapMarker.get(key);
-                        TempData.hashMapTime.remove(key);
-                        m.remove();
+                    catch(Exception e){
+                        Log.d("EXCEPTION(deletemrker):", e.getMessage());
                     }
-                }
-                catch(Exception e){
-                    Log.d("EXCEPTION(deletemrker):", e.getMessage());
-                }
 
 
-                try {
-                    firebaseObj.recalibrate();
-                    firebaseObj.setMarkers(mMap);
-                }
-                catch(Exception e){
-                    Log.d("EXCEPTION(addmarker):", e.getMessage());
-                }
+                    try {
+                        firebaseObj.recalibrate();
+                        firebaseObj.setMarkers(mMap);
+                    }
+                    catch(Exception e){
+                        Log.d("EXCEPTION(addmarker):", e.getMessage());
+                    }
 
-                handler.postDelayed(this, 10000);
-
+                    handler.postDelayed(this, 10000);
+                }
             }
         };
         handler.post(worker);
@@ -293,8 +273,8 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
             //Update camera position.
             LatLng new_position = new LatLng(TempData.cur_latitude, TempData.cur_longitude);
 
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(TempData.cur_latitude, TempData.cur_longitude), DEFAULT_ZOOM));
+        //    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+         //           new LatLng(TempData.cur_latitude, TempData.cur_longitude), DEFAULT_ZOOM));
 
         }
 
@@ -383,22 +363,7 @@ public class tab1_fragment extends Fragment implements OnMapReadyCallback, Googl
                         android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                 {
 
-                    Double longitude_info = LocationServices.FusedLocationApi
-                            .getLastLocation(mGoogleApiClient).getLongitude();
-                    Double latitude_info = LocationServices.FusedLocationApi
-                            .getLastLocation(mGoogleApiClient).getLatitude();
-
-                    Calendar calen = Calendar.getInstance();
-                    String current_time = String.valueOf(calen.get(calen.YEAR)) + "-"
-                            + String.valueOf(calen.get(calen.MONTH)+1) + "-"
-                            + String.valueOf(calen.get(calen.DAY_OF_MONTH))
-                            + " " + String.valueOf(calen.get(calen.HOUR_OF_DAY))
-                            + ":" + String.valueOf(calen.get(calen.MINUTE))
-                            + ":" + String.valueOf(calen.get(calen.SECOND));
-                    MarkerData temp = new MarkerData(input_text, longitude_info, latitude_info, current_time);
-                    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-
-                    mDatabase.push().setValue(temp);
+                    firebaseObj.saveData(mGoogleApiClient, input_text);
 
                 }
             }
