@@ -55,7 +55,6 @@ public class tab2_fragment extends Fragment {
     public static int cur_index;
     // Collections of info
     public static HashMap<String, String> hash_messages;
-    public static HashMap<String,String[]> tab2_Markers;
 
     @Nullable
     @Override
@@ -64,7 +63,6 @@ public class tab2_fragment extends Fragment {
 
         cur_index = 0;
         hash_messages = new HashMap<String, String>();
-        tab2_Markers = new HashMap<String, String[]>();
 
         recyclerViewAdapter = new CustomAdapter();
 
@@ -83,16 +81,11 @@ public class tab2_fragment extends Fragment {
 
                     for (String key : TempData.hashMapTime.keySet()) {
                         //add in items
-                        if (!tab2_Markers.containsKey(key)) {
+                        if (!hash_messages.containsKey(key)) {
                             String message = TempData.hashMapMarker.get(key).getSnippet();
                             String time = TempData.hashMapTime.get(key);
-
-                            String[] string_array = {message, time, String.valueOf(cur_index)};
-
-                            tab2_Markers.put(key, string_array);
                             hash_messages.put(key, message);
-
-                            recyclerViewAdapter.addMessage(string_array[1], key);
+                            recyclerViewAdapter.addMessage(time, key);
                             cur_index += 1;
 
 
@@ -106,7 +99,7 @@ public class tab2_fragment extends Fragment {
                 try{
                     ArrayList<String> keys_deleted = new ArrayList<String>();
                     // this is for markers that are outside of location scope.
-                    for (String key : tab2_Markers.keySet()) {
+                    for (String key : hash_messages.keySet()) {
                         if (!TempData.hashMapTime.containsKey(key)) {
                             keys_deleted.add(key);
 
@@ -114,10 +107,7 @@ public class tab2_fragment extends Fragment {
                     }
                     //Remove all the items from keys_deleted
                     for (String key : keys_deleted) {
-                        Log.d("valUE OF INDEX:", tab2_Markers.get(key)[2]);
-                        String[] deleted_list = tab2_Markers.remove(key);
                         hash_messages.remove(key);
-
                         recyclerViewAdapter.removeItem(key);
                         cur_index -= 1;
                     }
