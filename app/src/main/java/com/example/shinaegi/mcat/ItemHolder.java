@@ -10,7 +10,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 /**
- * Created by shinaegi on 2017-06-17.
+ * Item holder class for showing description of message logs.
+ * It extends ViewHolder which describes an item view and metadata about its place within the RecyclerView
+ * https://developer.android.com/reference/android/support/v7/widget/RecyclerView.ViewHolder
  */
 
 public class ItemHolder extends ViewHolder<String>{

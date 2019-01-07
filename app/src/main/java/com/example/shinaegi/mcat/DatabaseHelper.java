@@ -8,7 +8,7 @@ import android.database.Cursor;
 import android.util.Log;
 
 /**
- * Created by shinaegi on 2017-06-01.
+ * Database class for SQLite. As the application uses Firebase, this will only be used for testing.
  */
 
 public class DatabaseHelper extends SQLiteOpenHelper{
@@ -50,7 +50,6 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         long result = db.insert(TABLE_NAME, null, contentValues);
         if (result == -1)
         {
-            Log.d("asdf", "fml");
             return false;
         }
         else{

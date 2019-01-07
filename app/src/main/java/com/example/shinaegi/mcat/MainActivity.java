@@ -79,6 +79,7 @@ import layout.tab2_fragment;
 /**
  * An activity that displays a map showing the place at the device's current location.
  */
+
 public class MainActivity extends AppCompatActivity
         {
 

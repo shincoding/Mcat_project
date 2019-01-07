@@ -8,7 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by shinaegi on 2017-06-10.
+ * Page Adaptor (for populating pages inside of a ViewPager.
+ * Fragments are pieces of UI that can be placed in an Activity.
  */
 
 public class SectionsPageAdapter extends FragmentPagerAdapter {
