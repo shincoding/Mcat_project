@@ -109,7 +109,11 @@ public class tab1_fragment extends MapConfiguration {
     @Override
     public void onMapReady(final GoogleMap map) {
 
-      super.onMapReady(map);
+        super.onMapReady(map);
+        // no need to add another callback because onMapReady would be called whether the app
+        // is resumed (mGoogleApiClient.reconnect();)
+        //firebaseObj.recalibrate();
+        //firebaseObj.setMarkers(mMap);
         // Repeat on an interval
         final Handler handler = new Handler();
         final Runnable worker = new Runnable() {
@@ -124,6 +128,10 @@ public class tab1_fragment extends MapConfiguration {
                         Log.d("EXCEPTION(deletemrker):", e.getMessage());
                     }
                     try {
+                        // @TODO Find why the following codes are necessary to be put in a runnable.
+                        // there would be no need to re-call event listener every time frame.
+                        // One hypothesis would be that recalibration is needed.
+
                         firebaseObj.recalibrate();
                         firebaseObj.setMarkers(mMap);
                     }

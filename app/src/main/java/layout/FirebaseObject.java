@@ -42,6 +42,25 @@ public class FirebaseObject {
         mDatabase.getDatabase().getReference().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                /*
+
+                    @TODO implement the function using the following procedure:
+
+                    Run a Firebase query to select data that are above the current time and
+                    within the latitude and longitude bound.
+
+                    Run it first with all time period for initialization purpose.
+
+
+                    What about markers that have been deleted? Keep track of deleted markers by
+                    augmented tree with:
+                    1. country
+                    2. city
+                    3. district
+
+
+                 */
+
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()){
                     //add marker in the screen.
                     MarkerData markerData = snapshot.getValue(MarkerData.class);
@@ -64,7 +83,70 @@ public class FirebaseObject {
         });
     }
 
+    public void addBackMarkers() {
+        /*
+            @TODO implement the function using the following procedure:
+
+            Traditional method: transversing through all teh deleted markers.
+            This would be a linear time complexity.
+
+
+
+            Better solution:
+
+              Keep track of an augmented tree, where each node would either be:
+
+                1. country
+                2. city
+                3. district
+
+              Keep track of a dictionary for country, city, and district.
+
+
+              From the list of markers that are deleted, transverse down the augmented tree
+              (country -> city -> district)
+
+              For the specified district node, transverse through its children and compare with the
+              current location radius.
+
+              Why do this?
+                    Right now, the current place is specific to the user's GPS position.
+                    However, in the future, there may be features where users can share their
+                    locations for others to see. Thus, having a more flexible solution would
+                    improve the system. If some deleted nodes are in a different continent,
+                    do not need to transverse through them
+
+         */
+    }
+
     public void removeMarkers(){
+
+        /*
+
+            @TODO implement the function using the following procedure:
+
+            When removing markers, we need to store them into a data structure.
+            Otherwise, we will not be able to retrieve those marker information as
+            "update functions" will check only recently-added markers.
+
+            Implementation:
+
+              Keep track of an augmented tree, where each node would either be:
+
+                1. country
+                2. city
+                3. district
+
+              Keep track of a dictionary for country, city, and district.
+
+              When removing a marker, first check its geographical information using OpenStreetMap.
+              Then, go through its location of country, city, and district,
+              and insert the location as a node under its corresponding district.
+              Note that if any of its geographical info does not exist in the data structures,
+              insert them first.
+
+
+         */
         Set<String> set_of_keys =  TempData.hashMapTime.keySet();
 
         ArrayList<String> keys_deleted = new ArrayList<String>();
